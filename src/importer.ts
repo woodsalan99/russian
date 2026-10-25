@@ -31,7 +31,7 @@ function splitLine(line: string): { ru: string; en: string } | null {
     const ru = m[1].trim()
     const en = m[2].trim()
     if (CYR.test(en) && !LAT.test(en)) return { ru: l, en: '' } // dash inside a Russian phrase
-    return { ru, en: LAT.test(en) ? en : '' }
+    return { ru, en: /[A-Za-z0-9]/.test(en) ? en : '' }
   }
   // "тихий quiet" — Cyrillic run followed by Latin text
   const li = l.search(LAT)
@@ -93,7 +93,8 @@ export async function parseNotes(text: string): Promise<ImpItem[]> {
     const s = splitLine(line)
     if (!s || !s.ru) continue
     // "вышел, вышла - went out" → one item per Russian piece, sharing the English
-    const parts = s.ru.split(/\s*[,;/]\s*/).filter((p) => CYR.test(p))
+    const split = s.ru.split(/\s*[,;/]\s*/).filter((p) => CYR.test(p))
+    const parts = split.every((p) => !/\s/.test(p.trim())) ? split : [s.ru]
     for (const p of parts.length ? parts : [s.ru]) rows.push({ raw: line.trim(), ru: p.replace(/^[«"“(]+|[»"”).!?…]+$/g, '').trim(), en: s.en })
   }
   const cards = await db.cards.toArray()

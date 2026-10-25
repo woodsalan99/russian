@@ -1,9 +1,15 @@
 import { db } from '../db'
 import { useLive } from '../components'
 import { buildQueue } from './Review'
-import { go, getSettings } from '../util'
+import { go, getSettings, toast } from '../util'
+import { useEffect, useState } from 'preact/hooks'
+import { seedIfFirstRun } from '../seed'
 
 export function Home() {
+  const [seeding, setSeeding] = useState('')
+  useEffect(() => {
+    seedIfFirstRun(setSeeding).then((n) => { if (n) toast(`Loaded ${n} cards from your Noji deck`) }).catch((e) => toast(e.message)).finally(() => setSeeding(''))
+  }, [])
   const q = useLive(async () => {
     const [qq, stories, words] = await Promise.all([buildQueue(), db.stories.orderBy('lastOpened').reverse().first(), db.words.count()])
     return { qq, stories, words }
@@ -19,6 +25,7 @@ export function Home() {
         <button class="icon-btn" onClick={() => go('settings')} aria-label="Settings">⚙︎</button>
       </div>
 
+      {seeding && <div class="card" style={{ marginBottom: 12 }}><span class="spinner" /> {seeding}</div>}
       <div class="card deck">
         <div class="row"><h2 class="grow">My Russian</h2><span class="muted small">{q?.words ?? 0} words</span></div>
         <div class="counts">

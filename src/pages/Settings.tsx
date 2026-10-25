@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks'
 import { downloadAll } from '../dict'
+import { loadStarterDeck } from '../seed'
 import { exportAll, importAll } from '../store'
 import { getSettings, go, setSettings, toast } from '../util'
 
@@ -81,6 +82,12 @@ export function SettingsPage() {
         <button class="btn ghost block" disabled={!!prog} onClick={dl}>
           {prog ? `Downloading… ${Math.round((prog[0] / prog[1]) * 100)}%` : 'Download full dictionary'}
         </button>
+      </div>
+
+      <div class="card" style={{ marginTop: 12 }}>
+        <b>Starter deck</b>
+        <p class="muted small" style={{ margin: '4px 0 10px' }}>Your Noji cards. Safe to re-run — anything already in the app is skipped.</p>
+        <button class="btn ghost block" onClick={async () => { try { toast(`Added ${await loadStarterDeck()} cards`) } catch (e: any) { toast(e.message) } }}>Load Noji starter deck</button>
       </div>
 
       <div class="card" style={{ marginTop: 12 }}>
